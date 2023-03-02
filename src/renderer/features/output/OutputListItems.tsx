@@ -18,9 +18,13 @@ import { addOutput, removeOutput, setGuilds, setOutput } from "./outputSlice";
 
 import { OutputListItem } from "./OutputListItem";
 
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export function OutputListItems() {
   const [open, setOpen] = useState(true);
-
+  const [autoConnectError, setAutoConnectError] = useState("");
   function toggleOpen() {
     setOpen(!open);
   }
@@ -33,6 +37,19 @@ export function OutputListItems() {
     window.kenku.on("DISCORD_GUILDS", (args) => {
       const guilds = args[0];
       dispatch(setGuilds(guilds));
+      delay(500).then((_) => {
+        if (guilds.length && guilds[0].voiceChannels.length) {
+          handleChannelChange(guilds[0].voiceChannels[0].id);
+        } else {
+          setAutoConnectError(
+            `Unable to auto-connect to Discord. ${JSON.stringify(
+              guilds,
+              null,
+              2
+            )}`
+          );
+        }
+      });
     });
 
     window.kenku.on("DISCORD_CHANNEL_LEFT", (args) => {
@@ -118,6 +135,7 @@ export function OutputListItems() {
 
   return (
     <>
+      {autoConnectError}
       <ListItemButton onClick={toggleOpen}>
         <ListItemText
           primary={settings.multipleOutputsEnabled ? "Outputs" : "Output"}
