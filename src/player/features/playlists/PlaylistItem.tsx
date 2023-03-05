@@ -10,10 +10,11 @@ import Box from "@mui/material/Box";
 
 import { backgrounds, isBackground } from "../../backgrounds";
 
-import { Playlist, Track } from "./playlistsSlice";
+import { Playlist, removePlaylist, Track } from "./playlistsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../app/store";
 import { playPause, startQueue } from "./playlistPlaybackSlice";
+import { DeleteOutline } from "@mui/icons-material";
 
 type PlaylistItemProps = {
   playlist: Playlist;
@@ -60,9 +61,16 @@ export function PlaylistItem({
     }
   }
 
+  function handleDelete() {
+    dispatch(removePlaylist(playlist.id));
+  }
+
   return (
     <Card sx={{ position: "relative" }}>
       <CardActionArea onClick={() => onSelect(playlist.id)}>
+        <Typography variant="h5" component="div" sx={{ textAlign: "center" }}>
+          {playlist.title}
+        </Typography>
         <CardMedia
           component="img"
           height="200px"
@@ -95,9 +103,13 @@ export function PlaylistItem({
           pointerEvents: "none",
         }}
       >
-        <Typography variant="h5" component="div">
-          {playlist.title}
-        </Typography>
+        <IconButton
+          aria-label="delete"
+          sx={{ pointerEvents: "all" }}
+          onClick={handleDelete}
+        >
+          <DeleteOutline />
+        </IconButton>
         <IconButton
           aria-label="play/pause"
           sx={{ pointerEvents: "all" }}
