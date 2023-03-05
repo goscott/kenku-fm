@@ -15,6 +15,7 @@ export interface Soundboard {
   background: string;
   title: string;
   id: string;
+  url?: string;
 }
 
 export interface SoundboardsState {

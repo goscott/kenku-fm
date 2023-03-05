@@ -1,7 +1,13 @@
 import React, { useEffect } from "react";
 
-import { Track } from "./playlistsSlice";
-
+import {
+  addPlaylist,
+  addTrack,
+  editPlaylist,
+  removePlaylist,
+  removeTrack,
+  Track,
+} from "./playlistsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../app/store";
 import {
@@ -12,6 +18,8 @@ import {
   shuffle,
   startQueue,
 } from "./playlistPlaybackSlice";
+import { v4 as uuid } from "uuid";
+import { backgrounds } from "../../backgrounds";
 
 type PlaylistRemoteProps = {
   onPlay: (track: Track) => void;
@@ -215,6 +223,95 @@ export function PlaylistRemote({
       );
     };
   }, [onPrevious]);
+
+  useEffect(() => {
+    window.player.on("PLAYER_REMOTE_PLAYLIST_ADD", (args) => {
+      const existingPlaylistId = playlists.playlists.allIds.find(
+        (id: string) => playlists.playlists.byId[id].url === args[0].playlistUrl
+      );
+      if (
+        !existingPlaylistId &&
+        !args[0].title.toLowerCase().includes("folder") // ignore "new folder"
+      ) {
+        const id = uuid();
+        dispatch(
+          addPlaylist({
+            id,
+            title: args[0].title,
+            background: Object.keys(backgrounds)[0],
+            tracks: [],
+            url: args[0].url,
+          })
+        );
+      }
+    });
+
+    return () => {
+      window.player.removeAllListeners("PLAYER_REMOTE_PLAYLIST_ADD");
+    };
+  }, [playlists, addPlaylist]);
+
+  useEffect(() => {
+    window.player.on("PLAYER_REMOTE_PLAYLIST_ADD_TRACK", (args) => {
+      const playlistId = playlists.playlists.allIds.find(
+        (id: string) => playlists.playlists.byId[id].url === args[0].playlistUrl
+      );
+      if (playlistId) {
+        dispatch(
+          addTrack({
+            playlistId,
+            track: {
+              id: uuid(),
+              url: args[0].url,
+              title: args[0].title,
+            },
+          })
+        );
+      }
+    });
+
+    return () => {
+      window.player.removeAllListeners("PLAYER_REMOTE_PLAYLIST_ADD_TRACK");
+    };
+  }, [playlists, addTrack]);
+
+  useEffect(() => {
+    window.player.on("PLAYER_REMOTE_PLAYLIST_REMOVE", (args) => {
+      const playlistId = playlists.playlists.allIds.find(
+        (id: string) => playlists.playlists.byId[id].url === args[0].url
+      );
+      if (playlistId) {
+        dispatch(removePlaylist(playlistId));
+      }
+    });
+
+    return () => {
+      window.player.removeAllListeners("PLAYER_REMOTE_PLAYLIST_REMOVE");
+    };
+  }, [playlists, removePlaylist]);
+
+  useEffect(() => {
+    window.player.on("PLAYER_REMOTE_PLAYLIST_REMOVE_TRACK", (args) => {
+      const playlistId = playlists.playlists.allIds.find(
+        (id: string) => playlists.playlists.byId[id].url === args[0].playlistUrl
+      );
+      const trackId = Object.keys(playlists.tracks).find(
+        (id: string) => playlists.tracks[id].url === args[0].trackUrl
+      );
+      if (playlistId && trackId) {
+        dispatch(
+          removeTrack({
+            playlistId,
+            trackId,
+          })
+        );
+      }
+    });
+
+    return () => {
+      window.player.removeAllListeners("PLAYER_REMOTE_PLAYLIST_REMOVE_TRACK");
+    };
+  }, [playlists, removeTrack]);
 
   return <></>;
 }

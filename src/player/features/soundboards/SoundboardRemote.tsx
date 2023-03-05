@@ -1,9 +1,16 @@
 import React, { useEffect } from "react";
 
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { backgrounds } from "../../backgrounds";
 import { RootState } from "../../app/store";
-
-import { Sound } from "./soundboardsSlice";
+import { v4 as uuid } from "uuid";
+import {
+  addSound,
+  addSoundboard,
+  removeSound,
+  removeSoundboard,
+  Sound,
+} from "./soundboardsSlice";
 
 type SoundboardRemoteProps = {
   onPlay: (sound: Sound) => void;
@@ -11,6 +18,7 @@ type SoundboardRemoteProps = {
 };
 
 export function SoundboardRemote({ onPlay, onStop }: SoundboardRemoteProps) {
+  const dispatch = useDispatch();
   const soundboards = useSelector((state: RootState) => state.soundboards);
   const playback = useSelector((state: RootState) => state.soundboardPlayback);
 
@@ -73,6 +81,102 @@ export function SoundboardRemote({ onPlay, onStop }: SoundboardRemoteProps) {
       });
     });
   }, [soundboards]);
+
+  useEffect(() => {
+    window.player.on("PLAYER_REMOTE_SOUNDBOARD_ADD", (args) => {
+      const existingSoundboardId = soundboards.soundboards.allIds.find(
+        (id: string) =>
+          soundboards.soundboards.byId[id].url === args[0].soundboardUrl
+      );
+      if (
+        !existingSoundboardId &&
+        !args[0].title.toLowerCase().includes("folder") // ignore "new folder"
+      ) {
+        const id = uuid();
+        dispatch(
+          addSoundboard({
+            id,
+            title: args[0].title,
+            background: Object.keys(backgrounds)[0],
+            sounds: [],
+            url: args[0].url,
+          })
+        );
+      }
+    });
+
+    return () => {
+      window.player.removeAllListeners("PLAYER_REMOTE_SOUNDBOARD_ADD");
+    };
+  }, [soundboards, addSoundboard]);
+
+  useEffect(() => {
+    window.player.on("PLAYER_REMOTE_SOUNDBOARD_ADD_SOUND", (args) => {
+      const soundboardId = soundboards.soundboards.allIds.find(
+        (id: string) =>
+          soundboards.soundboards.byId[id].url === args[0].soundboardUrl
+      );
+      if (soundboardId) {
+        dispatch(
+          addSound({
+            soundboardId,
+            sound: {
+              id: uuid(),
+              url: args[0].url,
+              title: args[0].title,
+              loop: args[0].loop,
+              volume: args[0].volume,
+              fadeIn: args[0].fadeIn,
+              fadeOut: args[0].fadeOut,
+            },
+          })
+        );
+      }
+    });
+
+    return () => {
+      window.player.removeAllListeners("PLAYER_REMOTE_SOUNDBOARD_ADD_SOUND");
+    };
+  }, [soundboards, addSound]);
+
+  useEffect(() => {
+    window.player.on("PLAYER_REMOTE_SOUNDBOARD_REMOVE", (args) => {
+      const soundboardId = soundboards.soundboards.allIds.find(
+        (id: string) => soundboards.soundboards.byId[id].url === args[0].url
+      );
+      if (soundboardId) {
+        dispatch(removeSoundboard(soundboardId));
+      }
+    });
+
+    return () => {
+      window.player.removeAllListeners("PLAYER_REMOTE_SOUNDBOARD_REMOVE");
+    };
+  }, [soundboards, removeSoundboard]);
+
+  useEffect(() => {
+    window.player.on("PLAYER_REMOTE_SOUNDBOARD_REMOVE_SOUND", (args) => {
+      const soundboardId = soundboards.soundboards.allIds.find(
+        (id: string) =>
+          soundboards.soundboards.byId[id].url === args[0].soundboardUrl
+      );
+      const soundId = Object.keys(soundboards.sounds).find(
+        (id: string) => soundboards.sounds[id].url === args[0].soundUrl
+      );
+      if (soundboardId && soundId) {
+        dispatch(
+          removeSound({
+            soundboardId,
+            soundId,
+          })
+        );
+      }
+    });
+
+    return () => {
+      window.player.removeAllListeners("PLAYER_REMOTE_SOUNDBOARD_REMOVE_SOUND");
+    };
+  }, [soundboards, removeSound]);
 
   return <></>;
 }

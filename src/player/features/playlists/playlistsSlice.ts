@@ -11,6 +11,7 @@ export interface Playlist {
   background: string;
   title: string;
   id: string;
+  url?: string;
 }
 
 export interface PlaylistsState {
