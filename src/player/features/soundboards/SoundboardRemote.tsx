@@ -85,8 +85,7 @@ export function SoundboardRemote({ onPlay, onStop }: SoundboardRemoteProps) {
   useEffect(() => {
     window.player.on("PLAYER_REMOTE_SOUNDBOARD_ADD", (args) => {
       const existingSoundboardId = soundboards.soundboards.allIds.find(
-        (id: string) =>
-          soundboards.soundboards.byId[id].url === args[0].soundboardUrl
+        (id: string) => soundboards.soundboards.byId[id].url === args[0].url
       );
       if (
         !existingSoundboardId &&
@@ -117,20 +116,27 @@ export function SoundboardRemote({ onPlay, onStop }: SoundboardRemoteProps) {
           soundboards.soundboards.byId[id].url === args[0].soundboardUrl
       );
       if (soundboardId) {
-        dispatch(
-          addSound({
-            soundboardId,
-            sound: {
-              id: uuid(),
-              url: args[0].url,
-              title: args[0].title,
-              loop: args[0].loop,
-              volume: args[0].volume,
-              fadeIn: args[0].fadeIn,
-              fadeOut: args[0].fadeOut,
-            },
-          })
-        );
+        const soundAlreadyInSoundboard = soundboards.soundboards.byId[
+          soundboardId
+        ].sounds.some((soundId) => {
+          return soundboards.sounds[soundId].url === args[0].url;
+        });
+        if (!soundAlreadyInSoundboard) {
+          dispatch(
+            addSound({
+              soundboardId,
+              sound: {
+                id: uuid(),
+                url: args[0].url,
+                title: args[0].title,
+                loop: args[0].loop,
+                volume: args[0].volume,
+                fadeIn: args[0].fadeIn,
+                fadeOut: args[0].fadeOut,
+              },
+            })
+          );
+        }
       }
     });
 

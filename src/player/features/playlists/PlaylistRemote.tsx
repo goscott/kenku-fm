@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import {
   addPlaylist,
   addTrack,
-  editPlaylist,
   removePlaylist,
   removeTrack,
   Track,
@@ -227,7 +226,7 @@ export function PlaylistRemote({
   useEffect(() => {
     window.player.on("PLAYER_REMOTE_PLAYLIST_ADD", (args) => {
       const existingPlaylistId = playlists.playlists.allIds.find(
-        (id: string) => playlists.playlists.byId[id].url === args[0].playlistUrl
+        (id: string) => playlists.playlists.byId[id].url === args[0].url
       );
       if (
         !existingPlaylistId &&
@@ -257,16 +256,23 @@ export function PlaylistRemote({
         (id: string) => playlists.playlists.byId[id].url === args[0].playlistUrl
       );
       if (playlistId) {
-        dispatch(
-          addTrack({
-            playlistId,
-            track: {
-              id: uuid(),
-              url: args[0].url,
-              title: args[0].title,
-            },
-          })
-        );
+        const trackAlreadyInPlaylist = playlists.playlists.byId[
+          playlistId
+        ].tracks.some((trackId) => {
+          return playlists.tracks[trackId].url === args[0].url;
+        });
+        if (!trackAlreadyInPlaylist) {
+          dispatch(
+            addTrack({
+              playlistId,
+              track: {
+                id: uuid(),
+                url: args[0].url,
+                title: args[0].title,
+              },
+            })
+          );
+        }
       }
     });
 
