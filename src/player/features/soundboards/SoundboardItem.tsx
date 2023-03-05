@@ -6,11 +6,12 @@ import CardActionArea from "@mui/material/CardActionArea";
 import ShuffleIcon from "@mui/icons-material/ShuffleRounded";
 import IconButton from "@mui/material/IconButton";
 import Box from "@mui/material/Box";
+import { DeleteOutline } from "@mui/icons-material";
 
 import { backgrounds, isBackground } from "../../backgrounds";
 
-import { Sound, Soundboard } from "./soundboardsSlice";
-import { useSelector } from "react-redux";
+import { removeSoundboard, Sound, Soundboard } from "./soundboardsSlice";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../app/store";
 
 type SoundboardItemProps = {
@@ -28,6 +29,7 @@ export function SoundboardItem({
   const image = isBackground(soundboard.background)
     ? backgrounds[soundboard.background]
     : soundboard.background;
+  const dispatch = useDispatch();
 
   function handleShuffle() {
     let sounds = [...soundboard.sounds];
@@ -39,9 +41,16 @@ export function SoundboardItem({
     }
   }
 
+  function handleDelete() {
+    dispatch(removeSoundboard(soundboard.id));
+  }
+
   return (
     <Card sx={{ position: "relative" }}>
       <CardActionArea onClick={() => onSelect(soundboard.id)}>
+        <Typography variant="h5" component="div" sx={{ textAlign: "center" }}>
+          {soundboard.title}
+        </Typography>
         <CardMedia
           component="img"
           height="200px"
@@ -74,9 +83,13 @@ export function SoundboardItem({
           pointerEvents: "none",
         }}
       >
-        <Typography variant="h5" component="div">
-          {soundboard.title}
-        </Typography>
+        <IconButton
+          aria-label="delete"
+          sx={{ pointerEvents: "all" }}
+          onClick={handleDelete}
+        >
+          <DeleteOutline />
+        </IconButton>
         <IconButton
           aria-label="shuffle"
           sx={{ pointerEvents: "all" }}
