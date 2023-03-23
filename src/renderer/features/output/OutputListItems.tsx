@@ -68,7 +68,14 @@ export function OutputListItems() {
     };
   }, [dispatch]);
 
-  function handleChannelChange(channelId: string) {
+  function handleChannelChange(channelId: string, providedGuildId?: string) {
+    const channelsToGuild: Record<string, string> = {};
+    for (let guild of output.guilds) {
+      for (let channel of guild.voiceChannels) {
+        channelsToGuild[channel.id] = guild.id;
+      }
+    }
+    const guildId = providedGuildId || channelsToGuild[channelId];
     if (settings.multipleOutputsEnabled) {
       // Already selected
       if (output.outputs.includes(channelId)) {
@@ -76,7 +83,7 @@ export function OutputListItems() {
         if (channelId === "local") {
           window.kenku.setLoopback(false);
         } else {
-          window.kenku.leaveChannel(channelId);
+          window.kenku.leaveChannel(channelId, guildId);
         }
       } else {
         // Not selected
@@ -85,13 +92,7 @@ export function OutputListItems() {
           window.kenku.setLoopback(true);
         } else {
           // Check if the channel is in the same guild as one already selected
-          const channelsToGuild: Record<string, string> = {};
-          for (const guild of output.guilds) {
-            for (const channel of guild.voiceChannels) {
-              channelsToGuild[channel.id] = guild.id;
-            }
-          }
-          const currentGuild = channelsToGuild[channelId];
+          const currentGuild = guildId;
           let guildChannel: string;
           for (const id of output.outputs) {
             const guild = channelsToGuild[id];
@@ -105,8 +106,7 @@ export function OutputListItems() {
             dispatch(removeOutput(guildChannel));
             window.kenku.leaveChannel(guildChannel);
           }
-
-          window.kenku.joinChannel(channelId);
+          window.kenku.joinChannel(channelId, guildId);
         }
       }
     } else {
@@ -129,7 +129,7 @@ export function OutputListItems() {
       if (channelId === "local") {
         window.kenku.setLoopback(true);
       } else {
-        window.kenku.joinChannel(channelId);
+        window.kenku.joinChannel(channelId, guildId);
       }
     }
   }
