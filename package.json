@@ -64,6 +64,7 @@
     "@owlbear-rodeo/page-icon": "^0.6.0",
     "@reduxjs/toolkit": "^1.7.2",
     "@sinclair/typebox": "^0.23.4",
+    "cargo-cp-artifact": "^0.1.8",
     "case": "^1.6.3",
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.1.0",
