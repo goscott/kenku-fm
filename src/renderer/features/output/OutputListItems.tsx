@@ -68,8 +68,15 @@ export function OutputListItems() {
     };
   }, [dispatch]);
 
-  function handleChannelChange(channelId: string) {
-    if (settings.multipleOutputsEnabled) {
+  function handleChannelChange(channelId: string, providedGuildId?: string) {
+    const channelsToGuild: Record<string, string> = {};
+    for (let guild of output.guilds) {
+      for (let channel of guild.voiceChannels) {
+        channelsToGuild[channel.id] = guild.id;
+      }
+    }
+    const guildId = providedGuildId || channelsToGuild[channelId];
+    if (true) {
       // Already selected
       if (output.outputs.includes(channelId)) {
         dispatch(removeOutput(channelId));

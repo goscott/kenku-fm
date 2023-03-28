@@ -70,7 +70,7 @@
     "@sinclair/typebox": "^0.23.4",
     "cargo-cp-artifact": "^0.1.8",
     "case": "^1.6.3",
-    "discord.js": "^14.8.0",
+    "discord.js": "^14.7.1",
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.1.0",
     "env-cmd": "^10.1.0",
