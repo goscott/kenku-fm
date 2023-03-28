@@ -68,14 +68,7 @@ export function OutputListItems() {
     };
   }, [dispatch]);
 
-  function handleChannelChange(channelId: string, providedGuildId?: string) {
-    const channelsToGuild: Record<string, string> = {};
-    for (let guild of output.guilds) {
-      for (let channel of guild.voiceChannels) {
-        channelsToGuild[channel.id] = guild.id;
-      }
-    }
-    const guildId = providedGuildId || channelsToGuild[channelId];
+  function handleChannelChange(channelId: string) {
     if (settings.multipleOutputsEnabled) {
       // Already selected
       if (output.outputs.includes(channelId)) {
@@ -83,7 +76,7 @@ export function OutputListItems() {
         if (channelId === "local") {
           window.kenku.setLoopback(false);
         } else {
-          window.kenku.leaveChannel(channelId, guildId);
+          window.kenku.leaveChannel(channelId);
         }
       } else {
         // Not selected
@@ -92,9 +85,15 @@ export function OutputListItems() {
           window.kenku.setLoopback(true);
         } else {
           // Check if the channel is in the same guild as one already selected
-          const currentGuild = guildId;
+          const channelsToGuild: Record<string, string> = {};
+          for (const guild of output.guilds) {
+            for (const channel of guild.voiceChannels) {
+              channelsToGuild[channel.id] = guild.id;
+            }
+          }
+          const currentGuild = channelsToGuild[channelId];
           let guildChannel: string;
-          for (let id of output.outputs) {
+          for (const id of output.outputs) {
             const guild = channelsToGuild[id];
             if (guild === currentGuild) {
               guildChannel = id;
@@ -104,8 +103,10 @@ export function OutputListItems() {
           // a channel if it's in the same guild as the one we're about to join
           if (guildChannel) {
             dispatch(removeOutput(guildChannel));
+            window.kenku.leaveChannel(guildChannel);
           }
-          window.kenku.joinChannel(channelId, guildId);
+
+          window.kenku.joinChannel(channelId);
         }
       }
     } else {
@@ -119,16 +120,16 @@ export function OutputListItems() {
       if (prev) {
         if (prev === "local") {
           window.kenku.setLoopback(false);
-        } else if (channelsToGuild[prev] !== channelsToGuild[channelId]) {
+        } else {
           // Only leave channel if selecting a different guild
-          window.kenku.leaveChannel(prev, channelsToGuild[prev]);
+          window.kenku.leaveChannel(prev);
         }
       }
       dispatch(setOutput(channelId));
       if (channelId === "local") {
         window.kenku.setLoopback(true);
       } else {
-        window.kenku.joinChannel(channelId, guildId);
+        window.kenku.joinChannel(channelId);
       }
     }
   }
