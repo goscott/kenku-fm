@@ -76,7 +76,7 @@ export function OutputListItems() {
       }
     }
     const guildId = providedGuildId || channelsToGuild[channelId];
-    if (settings.multipleOutputsEnabled) {
+    if (true) {
       // Already selected
       if (output.outputs.includes(channelId)) {
         dispatch(removeOutput(channelId));
