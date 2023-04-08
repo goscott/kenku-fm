@@ -104,7 +104,7 @@ export function OutputListItems() {
           // a channel if it's in the same guild as the one we're about to join
           if (guildChannel) {
             dispatch(removeOutput(guildChannel));
-            window.kenku.leaveChannel(guildChannel);
+            window.kenku.leaveChannel(guildChannel, guildId);
           }
           window.kenku.joinChannel(channelId, guildId);
         }
@@ -122,7 +122,7 @@ export function OutputListItems() {
           window.kenku.setLoopback(false);
         } else {
           // Only leave channel if selecting a different guild
-          window.kenku.leaveChannel(prev);
+          window.kenku.leaveChannel(prev, guildId);
         }
       }
       dispatch(setOutput(channelId));
